@@ -10,10 +10,13 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+build
 *.local
 
 # Variables de entorno (no subir; usar .env.example como plantilla)
 .env
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
