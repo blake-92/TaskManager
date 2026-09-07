@@ -4,6 +4,8 @@ Gestor de tareas tipo **Kanban** full stack: un frontend en **React + TypeScript
 API en **Node.js + Express**, con datos guardados de verdad en **PostgreSQL** (vía **Prisma**) y
 autenticación real con **JWT** y **bcrypt**. Cada usuario ve y gestiona solo sus propias tareas.
 
+<!-- BADGE_CI -->
+
 ## Tecnologías
 
 - **Frontend:** React + Vite + TypeScript
@@ -60,6 +62,44 @@ npm run dev                    # http://localhost:5173
 ```
 
 Abre **http://localhost:5173** e inicia sesión.
+
+## Variables de entorno
+
+El backend lee su configuración desde `backend/.env`. Crea el archivo a partir de
+`backend/.env.example` y completa cada clave con tus propios valores.
+
+| Clave | Obligatoria | Para qué sirve |
+|---|---|---|
+| `DATABASE_URL` | Sí | Cadena de conexión a PostgreSQL |
+| `JWT_SECRET` | Sí | Secreto con el que se firman los tokens de sesión |
+| `PORT` | No | Puerto del backend (por defecto 3000) |
+| `FRONTEND_URL` | No | Origen permitido por CORS al desplegar en la nube |
+| `VITE_API_URL` | No | URL de la API que consume el frontend, si no es la local |
+
+> Este archivo documenta únicamente los **nombres** de las variables. Los valores reales viven en
+> `.env`, que está ignorado por git y nunca debe subirse al repositorio.
+
+## Comandos disponibles
+
+Desde la raíz del proyecto (frontend):
+
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Levanta el entorno de desarrollo en http://localhost:5173 |
+| `npm run build` | Genera el build de producción |
+| `npm run preview` | Sirve localmente el build de producción |
+| `npm run lint` | Ejecuta ESLint sobre el proyecto |
+| `npm run typecheck` | Verifica los tipos de TypeScript sin compilar |
+| `npm test` | Pendiente — las pruebas automatizadas se construyen en la Sesión 3 |
+
+Desde `backend/` (API):
+
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Levanta la API con recarga automática en http://localhost:3000 |
+| `npm start` | Levanta la API sin recarga automática |
+| `npm run seed` | Siembra usuarios y tareas de prueba en la base de datos |
+| `npm run typecheck` | Verifica los tipos de TypeScript sin compilar |
 
 ## Usuarios de prueba
 
