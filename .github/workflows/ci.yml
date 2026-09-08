@@ -44,5 +44,10 @@ jobs:
       # schema. Se genera de forma explicita para no depender de un hook de
       # postinstall y que el pipeline sea reproducible.
       - run: npx prisma generate
+        env:
+          # `prisma generate` solo lee el schema y no se conecta a la base,
+          # pero prisma.config.ts valida DATABASE_URL al cargarse. Se usa una
+          # URL de marcador: no apunta a ninguna base real.
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
 
       - run: npm run typecheck
