@@ -4,7 +4,7 @@ Gestor de tareas tipo **Kanban** full stack: un frontend en **React + TypeScript
 API en **Node.js + Express**, con datos guardados de verdad en **PostgreSQL** (vía **Prisma**) y
 autenticación real con **JWT** y **bcrypt**. Cada usuario ve y gestiona solo sus propias tareas.
 
-<!-- BADGE_CI -->
+[![CI](https://github.com/blake-92/TaskManager/actions/workflows/ci.yml/badge.svg)](https://github.com/blake-92/TaskManager/actions/workflows/ci.yml)
 
 ## Tecnologías
 
