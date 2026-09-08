@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  frontend:
+    name: Frontend - Lint & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  backend:
+    name: Backend - Typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      # El codigo importa @prisma/client, cuyos tipos se generan a partir del
+      # schema. Se genera de forma explicita para no depender de un hook de
+      # postinstall y que el pipeline sea reproducible.
+      - run: npx prisma generate
+        env:
+          # `prisma generate` solo lee el schema y no se conecta a la base,
+          # pero prisma.config.ts valida DATABASE_URL al cargarse. Se usa una
+          # URL de marcador: no apunta a ninguna base real.
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
+      - run: npm run typecheck
