@@ -90,7 +90,7 @@ Desde la raíz del proyecto (frontend):
 | `npm run preview` | Sirve localmente el build de producción |
 | `npm run lint` | Ejecuta ESLint sobre el proyecto |
 | `npm run typecheck` | Verifica los tipos de TypeScript sin compilar |
-| `npm test` | Pendiente — las pruebas automatizadas se construyen en la Sesión 3 |
+| `npm test` | Corre la suite de pruebas: unitarias, de componente y de API |
 
 Desde `backend/` (API):
 
@@ -100,6 +100,7 @@ Desde `backend/` (API):
 | `npm start` | Levanta la API sin recarga automática |
 | `npm run seed` | Siembra usuarios y tareas de prueba en la base de datos |
 | `npm run typecheck` | Verifica los tipos de TypeScript sin compilar |
+| `npm test` | Corre las pruebas de la API con Supertest |
 
 ## Usuarios de prueba
 
