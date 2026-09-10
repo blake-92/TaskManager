@@ -158,6 +158,12 @@ app.delete("/tasks/:id", requireAuth, async (req: Request, res: Response) => {
   res.json({ message: "Task deleted successfully" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Durante las pruebas el servidor no se levanta: Supertest usa la app
+// directamente, sin ocupar un puerto real.
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
