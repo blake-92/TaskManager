@@ -55,4 +55,22 @@ describe("TaskInput", () => {
 
     expect(campo).toHaveValue("");
   });
+
+  it("envia la fecha limite y la descripcion cuando el usuario las completa", async () => {
+    const onAddTask = vi.fn();
+    render(<TaskInput onAddTask={onAddTask} />);
+    const usuario = userEvent.setup();
+
+    await usuario.type(screen.getByLabelText("Nueva tarea"), "Entregar informe");
+    await usuario.type(screen.getByLabelText("Fecha límite (opcional)"), "2026-09-30");
+    await usuario.click(screen.getByLabelText("Descripción"));
+    await usuario.type(screen.getByLabelText("Descripción (opcional)"), "Con las capturas de la clase 4");
+    await usuario.click(screen.getByLabelText("Agregar tarea"));
+
+    expect(onAddTask).toHaveBeenCalledWith(
+      "Entregar informe",
+      "2026-09-30",
+      "Con las capturas de la clase 4"
+    );
+  });
 });

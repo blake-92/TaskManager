@@ -22,6 +22,18 @@ describe("API de tareas", () => {
     expect(res.status).toBe(401);
   });
 
+  it("rechaza crear una tarea con un token falsificado", async () => {
+    // Un token firmado con otro secreto no debe abrir las rutas protegidas.
+    const tokenFalso = jwt.sign({ email: "ana@ejemplo.com" }, "otro-secreto");
+
+    const res = await request(app)
+      .post("/tasks")
+      .set("Authorization", `Bearer ${tokenFalso}`)
+      .send({ text: "Escribir informe" });
+
+    expect(res.status).toBe(401);
+  });
+
   it("rechaza crear una tarea con titulo vacio", async () => {
     const res = await request(app)
       .post("/tasks")
