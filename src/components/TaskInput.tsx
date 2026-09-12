@@ -20,7 +20,7 @@ function TaskInput(props: TaskInputProps) {
     if (text.trim() === "") {
       return;
     }
-    props.onAddTask(text, dueDate || undefined, description.trim() || undefined);
+    props.onAddTask(text.trim(), dueDate || undefined, description.trim() || undefined);
     setText("");
     setDueDate("");
     setDescription("");

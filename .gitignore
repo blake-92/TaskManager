@@ -18,6 +18,13 @@ build
 .env.local
 .env.*.local
 
+# Resultados de Playwright
+test-results
+playwright-report
+
+# Reporte de cobertura de Vitest
+coverage
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

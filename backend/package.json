@@ -8,7 +8,8 @@
     "dev": "node --watch --env-file=.env src/index.ts",
     "start": "node src/index.ts",
     "seed": "node --env-file=.env prisma/seed.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -26,7 +27,10 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.0.1",
+    "@types/supertest": "^7.2.1",
     "prisma": "^6.19.0",
-    "typescript": "^6.0.3"
+    "supertest": "^7.2.2",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.0"
   }
 }
