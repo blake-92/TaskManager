@@ -22,6 +22,9 @@ build
 test-results
 playwright-report
 
+# Reporte de cobertura de Vitest
+coverage
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
