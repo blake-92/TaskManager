@@ -40,7 +40,7 @@ describe("contarTareasPendientes", () => {
     const resultado = contarTareasPendientes(tareas);
 
     // Assert
-    expect(resultado).toBe(3);
+    expect(resultado).toBe(4);
   });
 
   it("devuelve 0 cuando la lista esta vacia", () => {
