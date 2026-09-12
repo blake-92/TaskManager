@@ -1,15 +1,26 @@
 import { defineConfig } from 'vite'
-import { configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.ts',
-    // Las pruebas de e2e/ son de Playwright: Vitest no debe ejecutarlas.
-    exclude: [...configDefaults.exclude, 'e2e/**'],
+    // Dos proyectos con entornos distintos: el frontend corre en un DOM
+    // simulado (jsdom) y la API en Node, cada uno con su propio setup.
+    // Asi las pruebas del backend no dependen de que exista backend/.env.
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'frontend',
+          globals: true,
+          environment: 'jsdom',
+          setupFiles: './src/test/setup.ts',
+          // Solo src/: las pruebas de e2e/ son de Playwright.
+          include: ['src/**/*.test.{ts,tsx}'],
+        },
+      },
+      './backend',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
