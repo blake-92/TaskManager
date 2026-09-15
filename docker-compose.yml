@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Falta POSTGRES_USER en .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: ${POSTGRES_DB:?Falta POSTGRES_DB en .env}
+    # Sin "ports": la base solo es alcanzable dentro de la red de Compose, asi no
+    # choca con otro PostgreSQL que ya ocupe el 5432 en la maquina.
+    volumes:
+      # Desde PostgreSQL 18 los datos viven en /var/lib/postgresql.
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      # El host es "postgres", el nombre del servicio; nunca localhost.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en .env}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    # El frontend esta en la raiz del repositorio.
+    build: .
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
