@@ -17,23 +17,49 @@ autenticación real con **JWT** y **bcrypt**. Cada usuario ve y gestiona solo su
 ## Estructura
 
 ```
-.                 # frontend (React + Vite)
-├── src/          # componentes, estado y estilos
+.                       # frontend (React + Vite)
+├── src/                # componentes, estado y estilos
 ├── index.html
-└── backend/      # API (Express + Prisma)
+├── Dockerfile          # imagen del frontend: build con Node, servida con nginx
+├── docker-compose.yml  # frontend + backend + PostgreSQL con un solo comando
+├── .env.example        # variables para Docker Compose
+└── backend/            # API (Express + Prisma)
     ├── src/index.ts
-    ├── prisma/   # schema, migraciones y seed
-    └── docker-compose.yml   # PostgreSQL
+    ├── prisma/         # schema, migraciones y seed
+    ├── Dockerfile      # imagen del backend
+    └── docker-compose.yml   # solo PostgreSQL, para desarrollo local
 ```
 
 ## Requisitos
 
-- **Node.js 24+** (el backend ejecuta TypeScript directamente, sin compilar).
-- **Docker** (para la base de datos PostgreSQL).
+- **Docker**: con Docker alcanza para levantar el proyecto completo (opción A).
+- **Node.js 24+**: solo para desarrollar sin contenedores (opción B). El backend ejecuta
+  TypeScript directamente, sin compilar.
 
 ## Cómo levantarlo desde cero
 
-### 1. Base de datos + Backend
+### Opción A: todo con Docker (un solo comando)
+
+No hace falta instalar Node ni PostgreSQL. Desde la raíz del proyecto:
+
+```bash
+cp .env.example .env          # valores de ejemplo para una prueba local
+docker compose up --build     # construye y levanta frontend, backend y postgres
+```
+
+La primera vez, en otra terminal, crea las tablas y carga los usuarios de prueba:
+
+```bash
+docker compose exec backend npx prisma migrate deploy
+docker compose exec backend node prisma/seed.ts
+```
+
+Abre **http://localhost:5173** e inicia sesión con uno de los usuarios de prueba. Para apagar todo:
+`docker compose down` (los datos se conservan; con `docker compose down -v` también se borran).
+
+### Opción B: desarrollo local sin contenedores para la app
+
+#### 1. Base de datos + Backend
 
 ```bash
 cd backend
