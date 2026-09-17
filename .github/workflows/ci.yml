@@ -89,9 +89,9 @@ jobs:
       postgres:
         image: postgres:18
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: taskmanager
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
         ports:
           - 5432:5432
         options: >-
@@ -101,9 +101,10 @@ jobs:
           --health-retries 10
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskmanager
-      # Secreto de uso exclusivo para esta base temporal de CI.
-      JWT_SECRET: secreto-solo-para-ci
+      # Las credenciales llegan cifradas desde los Secrets del repositorio y
+      # GitHub las enmascara si alguna vez aparecieran en un log.
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
@@ -136,3 +137,56 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  migraciones:
+    name: Migraciones y Seeds
+    runs-on: ubuntu-latest
+
+    # PostgreSQL efimero: vive solo mientras dura este job, en una maquina
+    # descartable y aislada. Por eso sus credenciales de prueba van fijas aca
+    # y no en un Secret: no dan acceso a nada real.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: ./backend
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      # El seed importa el cliente de Prisma, asi que hay que generarlo antes.
+      - run: npx prisma generate
+
+      - run: npx prisma migrate deploy
+
+      - run: npx prisma db seed
+
+      # Segunda corrida seguida: el seed usa upsert, no debe duplicar nada.
+      - run: npx prisma db seed
+
+      - name: Comprobar que la segunda corrida no duplico datos
+        run: psql "$DATABASE_URL" -c 'SELECT (SELECT count(*) FROM "User") AS usuarios, (SELECT count(*) FROM "Task") AS tareas;'
