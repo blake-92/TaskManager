@@ -22,6 +22,12 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Backend is working!");
 });
 
+// Healthcheck: Railway la consulta despues de cada despliegue y solo activa la
+// version nueva cuando responde 200. No toca la base: solo dice "estoy vivo".
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.post("/register", async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
