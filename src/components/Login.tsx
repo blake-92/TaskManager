@@ -47,7 +47,7 @@ function Login(props: LoginProps) {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="admin@test.com"
+            placeholder="tu@correo.com"
             autoComplete="username"
           />
         </label>
