@@ -5,6 +5,13 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  # Disparo manual desde la pestana Actions. El job de produccion solo corre
+  # si en este campo se escribe DEPLOY.
+  workflow_dispatch:
+    inputs:
+      confirmacion:
+        description: 'Escribe DEPLOY para confirmar el despliegue a produccion'
+        required: true
 
 jobs:
   frontend:
@@ -190,3 +197,35 @@ jobs:
 
       - name: Comprobar que la segunda corrida no duplico datos
         run: psql "$DATABASE_URL" -c 'SELECT (SELECT count(*) FROM "User") AS usuarios, (SELECT count(*) FROM "Task") AS tareas;'
+
+  # Staging no tiene job propio: el servicio de Railway esta conectado a master
+  # con "Wait for CI", asi que despliega solo despues de cada merge y solo si
+  # este workflow termino en verde. Si algun job falla, Railway no despliega.
+
+  deploy-produccion:
+    name: Deploy a Producción (manual)
+    # Produccion tambien pasa por el quality gate completo.
+    needs: [frontend, backend, pruebas, e2e, migraciones]
+    # Solo con el disparo manual, la palabra DEPLOY y desde master. Sin la
+    # condicion de la rama, "Run workflow" permitiria elegir cualquier rama.
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirmacion == 'DEPLOY' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    # El RAILWAY_TOKEN de este ambiente de GitHub es un token de proyecto que
+    # Railway limita al ambiente production.
+    environment:
+      name: production
+      url: https://backend-production-0b49.up.railway.app
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version fija: el pipeline instala siempre el mismo CLI.
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli@5.57.9
+
+      # Sube solo la carpeta backend como raiz (ahi estan el Dockerfile y
+      # railway.json). En CI el CLI espera el resultado del despliegue: si el
+      # healthcheck falla, este paso termina en rojo.
+      - name: Desplegar a Railway (produccion)
+        run: railway up backend --path-as-root --service backend --environment production --ci --message "$(git log -1 --format='%h %s')"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
