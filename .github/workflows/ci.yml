@@ -5,6 +5,13 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  # Disparo manual desde la pestana Actions. El job de produccion solo corre
+  # si en este campo se escribe DEPLOY.
+  workflow_dispatch:
+    inputs:
+      confirmacion:
+        description: 'Escribe DEPLOY para confirmar el despliegue a produccion'
+        required: true
 
 jobs:
   frontend:
@@ -190,3 +197,54 @@ jobs:
 
       - name: Comprobar que la segunda corrida no duplico datos
         run: psql "$DATABASE_URL" -c 'SELECT (SELECT count(*) FROM "User") AS usuarios, (SELECT count(*) FROM "Task") AS tareas;'
+
+  deploy-staging:
+    name: Deploy a Staging
+    # Primer guardian: si cualquiera de estos jobs falla, no hay despliegue.
+    needs: [frontend, backend, pruebas, e2e, migraciones]
+    # Segundo guardian: solo un push real a master (es decir, un merge), nunca
+    # un Pull Request abierto.
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    # El RAILWAY_TOKEN de este ambiente de GitHub es un token de proyecto que
+    # Railway limita al ambiente staging: no puede tocar produccion.
+    environment:
+      name: staging
+      url: https://backend-staging-7628.up.railway.app
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version fija: el pipeline instala siempre el mismo CLI.
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli@5.57.9
+
+      # Sube solo la carpeta backend como raiz (ahi estan el Dockerfile y
+      # railway.json). En CI el CLI espera el resultado del despliegue: si el
+      # healthcheck falla, este paso termina en rojo.
+      - name: Desplegar a Railway (staging)
+        run: railway up backend --path-as-root --service backend --environment staging --ci --message "$(git log -1 --format='%h %s')"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-produccion:
+    name: Deploy a Producción (manual)
+    # Produccion tambien pasa por el quality gate completo.
+    needs: [frontend, backend, pruebas, e2e, migraciones]
+    # Solo con el disparo manual, la palabra DEPLOY y desde master. Sin la
+    # condicion de la rama, "Run workflow" permitiria elegir cualquier rama.
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirmacion == 'DEPLOY' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    # Otro ambiente de GitHub, con su propio token limitado a produccion.
+    environment:
+      name: production
+      url: https://backend-production-0b49.up.railway.app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli@5.57.9
+
+      - name: Desplegar a Railway (produccion)
+        run: railway up backend --path-as-root --service backend --environment production --ci --message "$(git log -1 --format='%h %s')"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
